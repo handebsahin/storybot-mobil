@@ -1,0 +1,119 @@
+# Öykülem - Cursor Rules
+
+## Proje Bilgisi
+- **Proje Adı:** Öykülem
+- **Açıklama:** Eğitici hikayeler sunan mobil uygulama
+- **Backend API:** hikaye-anlatici-bilge-api
+
+## Mimari Yapı
+```
+lib/
+├── core/              # Temel bileşenler ve yardımcılar
+│   ├── config/        # Yapılandırma dosyaları
+│   ├── constants/     # Sabitler ve tema bilgileri
+│   ├── errors/        # Hata yönetimi
+│   └── utils/         # Yardımcı fonksiyonlar
+├── data/              # Veri katmanı
+│   ├── models/        # Veri modelleri (API yanıtları için)
+│   ├── repositories/  # Veri kaynakları ile etkileşim
+│   └── providers/     # Veri sağlayıcıları
+├── domain/            # İş mantığı katmanı
+│   ├── entities/      # İş mantığı varlıkları
+│   ├── services/      # İş mantığı servisleri
+│   └── usecases/      # Kullanım durumları
+├── presentation/      # Sunum katmanı
+│   ├── screens/       # Ekranlar
+│   ├── widgets/       # Yeniden kullanılabilir bileşenler
+│   ├── navigation/    # Navigasyon yönetimi
+│   └── state/         # Durum yönetimi
+└── main.dart          # Uygulama giriş noktası
+```
+
+## Kodlama Standartları
+- **Stil:** Dart Analysis kurallarına uygun
+- **İsimlendirme:**
+  - Sınıf isimleri: PascalCase
+  - Değişken/fonksiyon isimleri: camelCase
+  - Sabitler: SCREAMING_SNAKE_CASE
+  - Dosya isimleri: snake_case.dart
+- **Dokümantasyon:** Tüm public API'ler için dokümantasyon yorumları
+- **Sorumluluk:** Her dosya tek bir sorumluluğa sahip olmalı
+
+## Paketler ve Teknolojiler
+- **Durum Yönetimi:** Riverpod
+- **HTTP İstekleri:** Dio
+- **Yerel Depolama:** shared_preferences
+- **Navigasyon:** go_router
+- **Lokalizasyon:** flutter_localizations, intl
+- **Validasyon:** form_field_validator
+
+## Backend API Entegrasyonu
+- **Base URL:** API base URL'i yapılandırma dosyasında tanımlanacak
+- **Endpoints:**
+  - `/api/v1/auth/register` - Kullanıcı kaydı
+  - `/api/v1/auth/login` - E-posta ile giriş
+  - `/api/v1/auth/google` - Google ile giriş
+  - `/api/v1/stories/generate` - Hikaye oluşturma
+  - `/api/v1/tasks/{task_id}` - Görev durumu kontrolü
+  - `/api/v1/stories/{story_id}` - Hikaye detayları
+  - `/api/v1/stories` - Kullanıcı hikayelerini listeleme
+  - `/api/v1/stories/{story_id}/sections/{section_number}/audio/info` - Senkronize ses içeriği
+- **Kimlik Doğrulama:** JWT token tabanlı
+
+## Veri Modelleri
+- Backend API şemalarıyla uyumlu model sınıfları
+- Her model için fromJson ve toJson metodları
+- Hikaye modeli için aşağıdaki alanlar:
+  - story_id: int
+  - topic: String
+  - knowledge_level: String (beginner, intermediate, expert)
+  - genre: String
+  - language: String
+  - sections: List<StorySection>
+  - concepts: List<KeyConcept>
+
+## UI/UX Standartları
+- Material Design 3 kullanılacak
+- Responsive tasarım prensipleri
+- Karanlık/aydınlık tema desteği
+- Erişilebilirlik standartlarına uyum
+- Tüm metinler için lokalizasyon
+
+## Hata Yönetimi
+- Tüm API çağrıları try-catch ile sarılacak
+- Anlamlı hata mesajları gösterilecek
+- Bağlantı hataları için yeniden deneme mekanizması
+- Offline mod desteği
+
+## Performans Optimizasyonu
+- const constructorlar kullanılacak
+- ListView.builder ile verimli liste gösterimi
+- Görüntüler için önbellek mekanizması
+- Ağır işlemler için compute fonksiyonu
+
+## Test Stratejisi
+- Unit Tests: İş mantığı ve servisler için
+- Widget Tests: Bileşenler için
+- Integration Tests: Ekranlar ve akışlar için
+
+## Güvenlik
+- Hassas veriler güvenli depolamada saklanacak
+- API anahtarları kodda saklanmayacak
+- HTTPS kullanılacak
+- Kullanıcı verilerini şifreleyerek saklama
+
+## Geliştirme İş Akışı
+1. Yeni özellik için branch oluştur
+2. Geliştirme yap ve testleri tamamla
+3. Kod kalitesi kontrolü yap
+4. Pull request oluştur
+5. Code review sonrası merge et
+
+## Bilgi Seviyeleri
+- beginner: Başlangıç seviyesi içerik
+- intermediate: Orta seviye içerik
+- expert: İleri seviye içerik
+
+## Dil Desteği
+- tr: Türkçe (varsayılan)
+- en: İngilizce

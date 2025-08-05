@@ -1,0 +1,49 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Stil
+    always_declare_return_types: true
+    always_put_required_named_parameters_first: true
+    avoid_print: true
+    prefer_single_quotes: true
+    sort_child_properties_last: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    unnecessary_string_interpolations: true
+    use_key_in_widget_constructors: true
+
+    # Performans
+    avoid_unnecessary_containers: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    sized_box_for_whitespace: true
+
+    # Hata Önleme
+    avoid_catches_without_on_clauses: true
+    avoid_empty_else: true
+    avoid_type_to_string: true
+    empty_catches: true
+    no_duplicate_case_values: true
+    throw_in_finally: true
+    unnecessary_null_checks: true
+    unnecessary_statements: true
+    unrelated_type_equality_checks: true
+
+    # Dokümantasyon
+    package_api_docs: true
+    public_member_api_docs: true
+
+analyzer:
+  errors:
+    # Hata Seviyeleri
+    missing_required_param: error
+    missing_return: error
+    must_be_immutable: error
+    sort_unnamed_constructors_first: ignore
+    
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/generated_plugin_registrant.dart"
