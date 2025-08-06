@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_exception.dart';
@@ -147,11 +148,13 @@ class AudioStateNotifier extends StateNotifier<AudioState> {
   /// Oynatma durumunu günceller
   void updatePlayingState(bool isPlaying) {
     if (_isDisposed) return;
-    try {
-      state = state.copyWith(isPlaying: isPlaying);
-    } catch (e) {
-      print('Error updating playing state: $e');
-    }
+
+    // Provider hatasını önlemek için mikro-task ile sarmala
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed) {
+        state = state.copyWith(isPlaying: isPlaying);
+      }
+    });
   }
 
   /// Mevcut pozisyonu günceller

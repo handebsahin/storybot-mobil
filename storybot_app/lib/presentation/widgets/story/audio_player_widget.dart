@@ -66,8 +66,17 @@ class _AudioPlayerWidgetState extends ConsumerState<AudioPlayerWidget> {
             String cleanedBase64 = _cleanBase64(audioData);
             print('Cleaned base64 length: ${cleanedBase64.length}');
 
-            // Base64 verisi doğrudan decode edilip BytesAudioSource ile kullanılıyor
+            // Base64AudioSource paketi ile dene (önceki çalışan yöntem)
+            print('Trying with Base64AudioSource package...');
+            await _audioPlayer.setAudioSource(
+                Base64AudioSource(cleanedBase64, kAudioFormatMP3));
+            print('Base64AudioSource package used successfully');
+          } catch (base64Error) {
+            print('Base64AudioSource failed: $base64Error');
+
+            // Fallback: Manuel decode ile dene
             try {
+              String cleanedBase64 = _cleanBase64(audioData);
               final decodedBytes = base64Decode(cleanedBase64);
               print(
                   'Successfully decoded base64, bytes length: ${decodedBytes.length}');
@@ -80,17 +89,9 @@ class _AudioPlayerWidgetState extends ConsumerState<AudioPlayerWidget> {
               await _audioPlayer.setAudioSource(BytesAudioSource(decodedBytes));
               print('Manually created BytesAudioSource set successfully');
             } catch (decodeError) {
-              print('Error with manual BytesAudioSource: $decodeError');
-
-              // Base64AudioSource paketi ile dene
-              print('Trying with Base64AudioSource package...');
-              await _audioPlayer.setAudioSource(
-                  Base64AudioSource(cleanedBase64, kAudioFormatMP3));
-              print('Base64AudioSource package used successfully');
+              print('All audio loading methods failed: $decodeError');
+              throw Exception('Ses verisi yüklenemedi: $decodeError');
             }
-          } catch (e) {
-            print('All base64 decoding methods failed: $e');
-            throw Exception('Base64 ses verisi işlenemedi: $e');
           }
         } else {
           throw Exception('Base64 verisi çok kısa veya boş');
@@ -130,6 +131,8 @@ class _AudioPlayerWidgetState extends ConsumerState<AudioPlayerWidget> {
       });
 
       print('Audio player initialized successfully');
+      print('Audio source: ${_audioPlayer.audioSource}');
+      print('Audio duration: ${_audioPlayer.duration}');
 
       // Otomatik oynatmayı kaldırıyoruz
       // Kullanıcı oynat butonuna basarak ses oynatımını başlatacak
@@ -465,16 +468,44 @@ class _AudioPlayerWidgetState extends ConsumerState<AudioPlayerWidget> {
                                 size: 32,
                                 color: Colors.white,
                               ),
-                              onPressed: () {
-                                if (isPlaying) {
-                                  _audioPlayer.pause();
-                                } else {
-                                  _audioPlayer.play().then((_) {
-                                    print(
-                                        'Play button pressed - play command sent');
-                                  }).catchError((error) {
-                                    print('Play button error: $error');
-                                  });
+                              onPressed: () async {
+                                try {
+                                  if (isPlaying) {
+                                    await _audioPlayer.pause();
+                                    print('Audio paused successfully');
+                                  } else {
+                                    // Ses oynatıcının hazır olup olmadığını kontrol et
+                                    if (_audioPlayer.audioSource != null) {
+                                      await _audioPlayer.play();
+                                      print(
+                                          'Audio play command sent successfully');
+                                    } else {
+                                      print(
+                                          'Audio source is null, cannot play');
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('Ses dosyası yüklenemedi'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  }
+                                } catch (error) {
+                                  print('Audio control error: $error');
+                                  // Hata durumunda kullanıcıya bilgi ver
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('Ses kontrolü hatası: $error'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                             ),

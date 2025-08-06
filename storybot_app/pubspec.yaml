@@ -1,105 +1,127 @@
 name: storybot_app
-description: Eğitici hikayeler sunan mobil uygulama.
-publish_to: 'none'
+description: "Öykülem - Eğitici hikayeler sunan mobil uygulama"
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: ">=3.0.0"
+  sdk: '>=3.2.0 <4.0.0'
 
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
-  # Durum Yönetimi
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
-
-  # Navigasyon
-  go_router: ^13.0.1
-
-  # HTTP ve API
-  dio: ^5.4.0
-  retrofit: ^4.0.3
-
-  # Yerel Depolama
+  
+  # UI
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+  lottie: ^3.1.0
+  flutter_html: ^3.0.0
+  flutter_markdown: ^0.6.18
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Navigation
+  go_router: ^13.2.1
+  
+  # Network
+  dio: ^5.4.1
+  connectivity_plus: ^5.0.2
+  
+  # Storage
   shared_preferences: ^2.2.2
   flutter_secure_storage: ^9.0.0
-
-  # UI Bileşenleri
-  cupertino_icons: ^1.0.6
-  flutter_markdown: ^0.6.18
-  flutter_html: ^3.0.0-beta.2
-  cached_network_image: ^3.3.1
-  shimmer: ^3.0.0
-  flutter_svg: ^2.0.9
-
-  # Ses İşleme
-  just_audio: ^0.9.36
-  audio_session: ^0.1.18
-
-  # Validasyon
+  
+  # Authentication
+  google_sign_in: ^6.2.1
+  jwt_decoder: ^2.0.1
+  
+  # Localization
+  intl: ^0.20.2
+  
+  # Form validation
   form_field_validator: ^1.1.0
-
-  # Yardımcı Paketler
-  intl: ^0.18.1
-  path_provider: ^2.1.1
-  package_info_plus: ^5.0.1
-  url_launcher: ^6.2.2
-  device_info_plus: ^9.1.1
-  connectivity_plus: ^5.0.2
-  flutter_dotenv: ^5.1.0
+  
+  # Logging
   logger: ^2.0.2+1
+  
+  # Audio
+  just_audio: ^0.9.36
+  just_audio_background: ^0.0.1-beta.11
+  base64_audio_source: ^1.1.0
+  
+  # URL handling
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  integration_test:
-    sdk: flutter
-
-  # Geliştirici Araçları
   flutter_lints: ^3.0.1
-  build_runner: ^2.4.7
-  json_serializable: ^6.7.1
-  retrofit_generator: ^8.0.6
   riverpod_generator: ^2.3.9
-  mockito: ^5.4.4
-  flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.8
+  build_runner: ^2.4.7
 
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
 flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
   uses-material-design: true
 
+  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
-    - assets/icons/
-    - assets/fonts/
-    - .env
+    - assets/animations/
 
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
-          weight: 700
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
 
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/icons/app_icon.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
 
-flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/images/splash.png
-  android_12:
-    image: assets/images/splash_android12.png
-    color: "#FFFFFF"
-  fullscreen: true
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
+

@@ -8,7 +8,6 @@ import '../../../data/models/story_model.dart';
 import '../../state/audio_state.dart';
 import '../../state/story_state.dart';
 import '../../widgets/story/audio_player_widget.dart';
-// import '../../widgets/story/highlighted_text.dart'; // Senkronize metin özelliği kaldırıldı
 import '../../widgets/story/key_concept_card.dart';
 import '../../widgets/story/markdown_text_widget.dart';
 
@@ -47,15 +46,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
   @override
   void dispose() {
     _isDisposed = true;
-    // Ses durumunu sıfırla ve oynatıcıyı durdur
-    final audioState = ref.read(audioStateProvider);
-    if (audioState.isPlaying) {
-      print('Stopping audio player on dispose');
-      // AudioPlayerWidget'a doğrudan erişemiyoruz, bu yüzden durum üzerinden resetliyoruz
-      ref.read(audioStateProvider.notifier).resetState();
-    } else {
-      ref.read(audioStateProvider.notifier).resetState();
-    }
+    // Ses durumunu sıfırla
+    ref.read(audioStateProvider.notifier).resetState();
     super.dispose();
   }
 
@@ -75,7 +67,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           final section =
               storyState.storyDetails!.sections[_currentSection - 1];
           print(
-              'Current section content: ${section.content.substring(0, min(100, section.content.length))}...');
+            'Current section content: ${section.content.substring(0, min(100, section.content.length))}...',
+          );
+          print('Section content length: ${section.content.length}');
+          print('Section content is empty: ${section.content.isEmpty}');
         } else {
           print('Story has no sections');
         }
@@ -91,9 +86,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     } catch (e) {
       print('Error loading story details: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hikaye yüklenirken hata: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hikaye yüklenirken hata: $e')));
       }
     }
   }
@@ -135,7 +130,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     if (_isDisposed) return;
 
     final storyState = ref.read(storyStateProvider);
-    if (storyState.storyDetails != null) {
+    if (storyState.storyDetails != null &&
+        storyState.storyDetails!.concepts.isNotEmpty) {
       // Mevcut bölüme ait anahtar kelimeleri filtrele
       final currentSectionConcepts = storyState.storyDetails!.concepts
           .where((concept) => concept.sectionNumber == _currentSection)
@@ -149,17 +145,6 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           print('Extracted keywords: $_keywordList');
         });
       }
-
-      // Konsola hikaye içeriğini yazdır
-      if (storyState.storyDetails!.sections.isNotEmpty) {
-        final sectionIndex = _currentSection - 1;
-        if (sectionIndex >= 0 &&
-            sectionIndex < storyState.storyDetails!.sections.length) {
-          final section = storyState.storyDetails!.sections[sectionIndex];
-          print(
-              'Section content: ${section.content.substring(0, min(100, section.content.length))}...');
-        }
-      }
     }
   }
 
@@ -169,32 +154,25 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     final audioState = ref.watch(audioStateProvider);
     final story = storyState.storyDetails;
 
-    // Debug loglarını kaldır
-    // print('Building StoryDetailScreen: story=${story != null}, '
-    //     'isLoading=${storyState.isLoading}, '
-    //     'hasError=${storyState.error != null}');
+    print('Building StoryDetailScreen: story=${story != null}, '
+        'isLoading=${storyState.isLoading}, '
+        'hasError=${storyState.error != null}');
 
-    // if (story != null) {
-    //   print('Story sections: ${story.sections.length}');
-    //   if (story.sections.isNotEmpty) {
-    //     print(
-    //         'First section content: ${story.sections[0].content.substring(0, min(50, story.sections[0].content.length))}...');
-    //   }
-    // }
+    if (story != null) {
+      print('Story sections: ${story.sections.length}');
+      if (story.sections.isNotEmpty) {
+        print(
+            'First section content: ${story.sections[0].content.substring(0, min(50, story.sections[0].content.length))}...');
+      }
+    }
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(story?.topic ?? AppStrings.storyDetails),
-        backgroundColor: AppColors.primary.withOpacity(0.95),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
         actions: story != null && story.sections.isNotEmpty
             ? [
                 // Bölüm bilgisi
@@ -291,8 +269,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     final section = story.sections[currentSectionIndex];
     final sectionContent = section.content;
 
-    // Debug mesajlarını azalt
-    // print('Building section content: ${sectionContent.substring(0, min(50, sectionContent.length))}...');
+    print(
+        'Building section content: ${sectionContent.substring(0, min(50, sectionContent.length))}...');
 
     // Bölüme ait anahtar kavramları filtrele
     final sectionConcepts = story.concepts
@@ -301,111 +279,173 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-          16.0,
-          MediaQuery.of(context).padding.top + kToolbarHeight + 16.0,
-          16.0,
-          16.0),
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Bölüm navigasyon butonları
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 16),
+            margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Önceki bölüm butonu
-                if (_currentSection > 1)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _currentSection--;
-                        });
-                        _loadAudioInfo();
-                        _extractKeywords();
-                      },
-                      icon: const Icon(Icons.arrow_back,
-                          color: AppColors.primary),
-                      tooltip: AppStrings.previousSection,
-                    ),
-                  )
-                else
-                  const SizedBox(width: 48),
-
                 // Bölüm bilgisi
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppColors.lightBackground,
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primaryLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     'Bölüm $_currentSection / ${story.sections.length}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: Colors.white,
+                          fontSize: 13,
                         ),
                   ),
                 ),
-
-                // Sonraki bölüm butonu
-                if (_currentSection < story.sections.length)
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primary,
-                          AppColors.primaryLight,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                const Spacer(),
+                // Navigasyon butonları
+                Row(
+                  children: [
+                    // Önceki bölüm butonu
+                    if (_currentSection > 1)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                _currentSection--;
+                              });
+                              _loadAudioInfo();
+                              _extractKeywords();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.arrow_back_ios,
+                                    color: AppColors.primary,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Önceki',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary,
+                                          fontSize: 12,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _currentSection++;
-                        });
-                        _loadAudioInfo();
-                        _extractKeywords();
-                      },
-                      icon:
-                          const Icon(Icons.arrow_forward, color: Colors.white),
-                      tooltip: AppStrings.nextSection,
-                    ),
-                  )
-                else
-                  const SizedBox(width: 48),
+                      ),
+
+                    // Sonraki bölüm butonu
+                    if (_currentSection < story.sections.length)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            setState(() {
+                              _currentSection++;
+                            });
+                            _loadAudioInfo();
+                            _extractKeywords();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primaryLight
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Sonraki',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
 
           // Hikaye içeriği
           Container(
@@ -427,8 +467,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                 // Bölüm görseli (eğer varsa)
                 if (section.imageUrl.isNotEmpty)
                   ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                     child: Stack(
                       children: [
                         Image.network(
@@ -441,15 +482,16 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             return Container(
                               width: double.infinity,
                               height: 120,
-                              color:
-                                  _getKnowledgeLevelColor(story.knowledgeLevel)
-                                      .withOpacity(0.2),
+                              color: _getKnowledgeLevelColor(
+                                story.knowledgeLevel,
+                              ).withOpacity(0.2),
                               child: Center(
                                 child: Icon(
                                   _getKnowledgeLevelIcon(story.knowledgeLevel),
                                   size: 48,
                                   color: _getKnowledgeLevelColor(
-                                      story.knowledgeLevel),
+                                    story.knowledgeLevel,
+                                  ),
                                 ),
                               ),
                             );
@@ -469,7 +511,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                       : null,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     _getKnowledgeLevelColor(
-                                        story.knowledgeLevel),
+                                      story.knowledgeLevel,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -482,10 +525,13 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           right: 8,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
-                              color:
-                                  _getKnowledgeLevelColor(story.knowledgeLevel),
+                              color: _getKnowledgeLevelColor(
+                                story.knowledgeLevel,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -515,7 +561,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           left: 8,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(12),
@@ -576,8 +624,11 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           alignment: Alignment.center,
                           child: Column(
                             children: [
-                              const Icon(Icons.warning_amber_rounded,
-                                  color: Colors.amber, size: 48),
+                              const Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.amber,
+                                size: 48,
+                              ),
                               const SizedBox(height: 16),
                               Text(
                                 'Hikaye içeriği yüklenemedi',
@@ -600,7 +651,6 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
 
           // Ses oynatıcı
           _buildAudioPlayer(audioState),
@@ -624,21 +674,53 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                 const SizedBox(width: 12),
                 Text(
                   AppStrings.keyConcepts,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            ...sectionConcepts.map((concept) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: KeyConceptCard(concept: concept),
-                )),
+            ...sectionConcepts.map(
+              (concept) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: KeyConceptCard(concept: concept),
+              ),
+            ),
           ],
 
           // Alt boşluk
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  /// Bilgi satırı oluşturur
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -658,31 +740,15 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     }
   }
 
-  /// Bilgi seviyesine göre ikon döndürür
-  IconData _getKnowledgeLevelIcon(String level) {
-    switch (level) {
-      case 'beginner':
-        return Icons.school;
-      case 'intermediate':
-        return Icons.auto_stories;
-      case 'expert':
-        return Icons.psychology;
+  /// Dil metnini döndürür
+  String _getLanguageText(String lang) {
+    switch (lang) {
+      case 'tr':
+        return 'Türkçe';
+      case 'en':
+        return 'İngilizce';
       default:
-        return Icons.school;
-    }
-  }
-
-  /// Bilgi seviyesine göre renk döndürür
-  Color _getKnowledgeLevelColor(String level) {
-    switch (level) {
-      case 'beginner':
-        return AppColors.beginnerColor;
-      case 'intermediate':
-        return AppColors.intermediateColor;
-      case 'expert':
-        return AppColors.expertColor;
-      default:
-        return AppColors.primary;
+        return lang;
     }
   }
 
@@ -723,10 +789,17 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           child: AudioPlayerWidget(
             audioSync: audioState.audioSync!,
             onPositionChanged: (position) {
-              // Senkronize metin özelliği kaldırıldı
+              // Pozisyon değişikliği - basit metin gösterimi için kullanılmıyor
             },
             onPlayingStateChanged: (isPlaying) {
-              // Senkronize metin özelliği kaldırıldı
+              // Provider hatasını önlemek için mikro-task ile sarmala
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!_isDisposed) {
+                  ref
+                      .read(audioStateProvider.notifier)
+                      .updatePlayingState(isPlaying);
+                }
+              });
             },
           ),
         ),
@@ -884,4 +957,30 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
 
   // Yardımcı fonksiyon
   int min(int a, int b) => a < b ? a : b;
+
+  Color _getKnowledgeLevelColor(String level) {
+    switch (level) {
+      case 'beginner':
+        return AppColors.primary;
+      case 'intermediate':
+        return AppColors.secondary;
+      case 'expert':
+        return AppColors.success;
+      default:
+        return AppColors.textSecondary;
+    }
+  }
+
+  IconData _getKnowledgeLevelIcon(String level) {
+    switch (level) {
+      case 'beginner':
+        return Icons.star_border;
+      case 'intermediate':
+        return Icons.lightbulb_outline;
+      case 'expert':
+        return Icons.lightbulb;
+      default:
+        return Icons.info_outline;
+    }
+  }
 }

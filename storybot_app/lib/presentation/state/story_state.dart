@@ -57,8 +57,8 @@ class StoryStateNotifier extends StateNotifier<StoryState> {
   final StoryService _storyService;
 
   StoryStateNotifier({required StoryService storyService})
-    : _storyService = storyService,
-      super(StoryState.initial());
+      : _storyService = storyService,
+        super(StoryState.initial());
 
   /// Kullanıcının hikayelerini yükler
   Future<void> loadUserStories() async {
@@ -105,6 +105,6 @@ class StoryStateNotifier extends StateNotifier<StoryState> {
 /// StoryState provider'ı
 final storyStateProvider =
     StateNotifierProvider<StoryStateNotifier, StoryState>((ref) {
-      final storyService = ref.watch(storyServiceProvider);
-      return StoryStateNotifier(storyService: storyService);
-    });
+  final storyService = ref.watch(storyServiceProvider);
+  return StoryStateNotifier(storyService: storyService);
+});

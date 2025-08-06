@@ -66,9 +66,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Hata durumunda SnackBar göster
     if (storyState.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Hata mesajını daha detaylı göster
+        String errorMessage = storyState.error!.message;
+
+        // İnternet bağlantısı hatası için özel mesaj
+        if (errorMessage.contains('İnternet bağlantısı') ||
+            errorMessage.contains('connection') ||
+            errorMessage.contains('network')) {
+          errorMessage =
+              'İnternet bağlantısı hatası. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(storyState.error!.message),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Hata Oluştu',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(errorMessage),
+              ],
+            ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -78,6 +100,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bottom: size.height * 0.1,
               left: 20,
               right: 20,
+            ),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Tekrar Dene',
+              textColor: Colors.white,
+              onPressed: () {
+                // Hata durumunu temizle ve hikayeleri tekrar yükle
+                ref.read(storyStateProvider.notifier).clearError();
+                ref.read(storyStateProvider.notifier).loadUserStories();
+              },
             ),
           ),
         );

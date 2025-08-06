@@ -46,10 +46,41 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
     // Hata durumunda SnackBar göster
     if (creationState.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Hata mesajını daha detaylı göster
+        String errorMessage = creationState.error!.message;
+
+        // İnternet bağlantısı hatası için özel mesaj
+        if (errorMessage.contains('İnternet bağlantısı') ||
+            errorMessage.contains('connection') ||
+            errorMessage.contains('network')) {
+          errorMessage =
+              'İnternet bağlantısı hatası. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(creationState.error!.message),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Hata Oluştu',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(errorMessage),
+              ],
+            ),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Tekrar Dene',
+              textColor: Colors.white,
+              onPressed: () {
+                // Hata durumunu temizle ve tekrar dene
+                ref.read(storyCreationStateProvider.notifier).clearError();
+              },
+            ),
           ),
         );
         ref.read(storyCreationStateProvider.notifier).clearError();
@@ -84,15 +115,15 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
               Text(
                 AppStrings.createStoryTitle,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
                 AppStrings.createStoryDescription,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                      color: AppColors.textSecondary,
+                    ),
               ),
               const SizedBox(height: 32),
 

@@ -80,9 +80,9 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
   StoryCreationStateNotifier({
     required StoryCreationService storyCreationService,
     required StoryService storyService,
-  }) : _storyCreationService = storyCreationService,
-       _storyService = storyService,
-       super(StoryCreationState.initial());
+  })  : _storyCreationService = storyCreationService,
+        _storyService = storyService,
+        super(StoryCreationState.initial());
 
   @override
   void dispose() {
@@ -127,15 +127,21 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
         return;
       }
 
+      print('Checking task status for taskId: $taskId');
       final task = await _storyCreationService.checkTaskStatus(taskId);
+      print(
+          'Task status received: isCompleted=${task.isCompleted}, hasError=${task.hasError}, progress=${task.progress}');
 
       if (task.isCompleted) {
         timer.cancel();
         if (task.result != null) {
           try {
+            print('Task completed with result: ${task.result}');
             // Hikaye detaylarını yükle
             final storyId = int.parse(task.result!);
+            print('Loading story details for storyId: $storyId');
             final story = await _storyService.getStoryDetails(storyId);
+            print('Story details loaded successfully: ${story.topic}');
             state = StoryCreationState.success(story);
           } catch (e) {
             print('Hikaye detayları yüklenirken hata: $e');
@@ -147,6 +153,7 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
             );
           }
         } else {
+          print('Task completed but no result found');
           state = StoryCreationState.error(
             AppException(
               message: 'Hikaye oluşturuldu ancak detaylar alınamadı.',
@@ -155,13 +162,17 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
         }
       } else if (task.hasError) {
         timer.cancel();
+        print('Task has error: ${task.error}');
         state = StoryCreationState.error(
           AppException(
             message: task.error ?? 'Hikaye oluşturulurken bir hata oluştu.',
           ),
         );
       } else if (task.isInProgress) {
+        print('Task in progress: ${task.progress}%');
         state = StoryCreationState.generating(taskId, task.progress);
+      } else {
+        print('Task status unknown');
       }
     } catch (e) {
       print('Error checking task status: $e');
@@ -170,12 +181,15 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
       // Maksimum yeniden deneme sayısına ulaşıldıysa hata ver ve polling'i durdur
       if (_retryCount >= _maxRetries) {
         timer.cancel();
+        print('Max retries reached, stopping polling');
         state = StoryCreationState.error(
           AppException(
             message:
                 'Görev durumu kontrol edilirken bir hata oluştu: ${e.toString()}',
           ),
         );
+      } else {
+        print('Retry count: $_retryCount/$_maxRetries');
       }
       // Aksi takdirde bir sonraki kontrol denemesinde tekrar denenecek
     }
@@ -196,12 +210,12 @@ class StoryCreationStateNotifier extends StateNotifier<StoryCreationState> {
 /// StoryCreationState provider'ı
 final storyCreationStateProvider =
     StateNotifierProvider<StoryCreationStateNotifier, StoryCreationState>((
-      ref,
-    ) {
-      final storyCreationService = ref.watch(storyCreationServiceProvider);
-      final storyService = ref.watch(storyServiceProvider);
-      return StoryCreationStateNotifier(
-        storyCreationService: storyCreationService,
-        storyService: storyService,
-      );
-    });
+  ref,
+) {
+  final storyCreationService = ref.watch(storyCreationServiceProvider);
+  final storyService = ref.watch(storyServiceProvider);
+  return StoryCreationStateNotifier(
+    storyCreationService: storyCreationService,
+    storyService: storyService,
+  );
+});

@@ -3,7 +3,7 @@ class AppConfig {
   // API yapılandırması
   // Emülatör için 10.0.2.2, gerçek cihaz için IP adresi kullanılmalı
   // localhost yerine 10.0.2.2 kullanılarak emülatörden API'ye erişim sağlanır
-  static const String apiBaseUrl = 'http://10.0.2.2:8000';
+  static const String apiBaseUrl = 'http://192.168.1.49:8000';
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
 
